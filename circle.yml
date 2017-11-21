@@ -1,0 +1,11 @@
+compile:
+  override:
+    - 'script/validate'
+test:
+  override:
+    - exit 0
+deployment:
+  production:
+    branch: master
+    commands:
+      - cp work/toddlr.client.json $CIRCLE_ARTIFACTS

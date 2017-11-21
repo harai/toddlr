@@ -1,0 +1,18 @@
+#!/bin/bash -eu
+
+validate_template () {
+  local -r region="$1"
+  local -r name="$2"
+
+  PYTHONPATH=. python "toddlr/$name/template.py" > "work/toddlr.$name.json"
+  jq -c . < "work/toddlr.$name.json" > "work/toddlr.$name.min.json"
+
+  aws --region "$region" cloudformation validate-template \
+    --template-body "$(cat "work/toddlr.$name.min.json")"
+}
+
+validate_template ap-northeast-1 main
+
+echo ''
+echo "$(tput setaf 2)Template is valid.$(tput sgr0)"
+echo ''
