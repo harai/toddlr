@@ -11,10 +11,9 @@ def words_attrdefs():
   return [
       dynamodb.AttributeDefinition(AttributeName='word', AttributeType='S'),
       dynamodb.AttributeDefinition(AttributeName='reminder', AttributeType='S'),
+      dynamodb.AttributeDefinition(AttributeName='user', AttributeType='S'),
       dynamodb.AttributeDefinition(
           AttributeName='forgetful', AttributeType='S'),
-      dynamodb.AttributeDefinition(
-          AttributeName='registered_at', AttributeType='S'),
   ]
 
 
@@ -23,6 +22,7 @@ def words_gsis():
       dynamodb.GlobalSecondaryIndex(
           IndexName='reminder',
           KeySchema=[
+              dynamodb.KeySchema(AttributeName='user', KeyType='HASH'),
               dynamodb.KeySchema(AttributeName='reminder', KeyType='RANGE'),
           ],
           Projection=dynamodb.Projection(ProjectionType='ALL'),
