@@ -147,3 +147,17 @@ def spreadsheet_group(pui, template):
               'label': 'Spreadsheet ID',
           },
       ])
+
+
+def s3_group(pui, template):
+  return pui.group(
+      template, 'S3', [
+          {
+              'parameter': Parameter('S3Bucket', Type=constants.STRING),
+              'label': 'S3 Bucket',
+          },
+          {
+              'parameter': Parameter('S3KeyBase', Type=constants.STRING),
+              'label': 'S3 Key Base',
+          },
+      ])

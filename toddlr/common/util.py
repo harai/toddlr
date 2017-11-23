@@ -16,12 +16,24 @@ def current_git_revision():
 
 
 def version_info():
-  return 'Build URL: {}, Git revision: {}'.format(
-      os.environ.get('CIRCLE_BUILD_URL', 'None'), current_git_revision())
+  return 'Build URL: {}, Git revision: {} {}'.format(
+      os.environ.get('CIRCLE_BUILD_URL', 'None'), current_git_revision(),
+      '[dirty]' if is_dirty() else '[clean]')
 
 
 def current_time():
   return datetime.now().strftime('%Y%m%d%H%M%S')
+
+
+def is_dirty():
+  p = subprocess.run(
+      ['git', 'diff', 'HEAD', '--name-status'], stdout=subprocess.PIPE)
+  return p.stdout.decode().strip() != ''
+
+
+def versionid(name):
+  with open('work/awslambda/{}.versionid'.format(name)) as f:
+    return f.read().strip()
 
 
 class Imp(object):

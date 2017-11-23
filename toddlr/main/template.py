@@ -5,10 +5,40 @@ from troposphere import Template
 
 from toddlr.common import util
 from toddlr.common.paramui import ParamUi
-from toddlr.main import dynamodb, output, param
+from toddlr.main import (
+    awslambda,
+    awslog,
+    dynamodb,
+    iam,
+    output,
+    param,
+    predefined
+)
 
 log = logging.getLogger(__name__)
 pp = PrettyPrinter(indent=3)
+
+
+def construct_csvimport(t, words_table, s3_bucket, s3_key_value):
+  # Predefined
+  csvimport_s3_versionid_value = util.versionid('csvimport')
+
+  # IAM
+  csvimport_lambda_role = t.add_resource(iam.csvimport_lambda_role(words_table))
+
+  # Lambda
+  csvimport_function = t.add_resource(
+      awslambda.csvimport_function(
+          csvimport_lambda_role=csvimport_lambda_role,
+          words_table=words_table,
+          s3_bucket=s3_bucket,
+          s3_key_value=s3_key_value,
+          csvimport_s3_versionid_value=csvimport_s3_versionid_value))
+
+  # CloudWatch Logs
+  t.add_resource(awslog.csvimport_log(csvimport_function))
+
+  return csvimport_function
 
 
 def construct_template():
@@ -53,11 +83,25 @@ def construct_template():
       google_client_email,
       spreadsheet_id,
   ] = param.spreadsheet_group(pui, t)
+  [
+      s3_bucket,
+      s3_key_base,
+  ] = param.s3_group(pui, t)
 
   pui.output(t)
 
+  # Predefined
+  s3_key_value = predefined.s3_key_value(s3_key_base)
+
   # DynamoDB
-  t.add_resource(dynamodb.words_table())
+  words_table = t.add_resource(dynamodb.words_table())
+
+  # sub
+  construct_csvimport(
+      t,
+      words_table=words_table,
+      s3_bucket=s3_bucket,
+      s3_key_value=s3_key_value)
 
   # Output
   t.add_output([output.version(version)])

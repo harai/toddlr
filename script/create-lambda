@@ -1,0 +1,59 @@
+#!/bin/bash -eu
+
+
+s3bucket="$(< config/s3bucket)"
+s3keybase="$(< config/s3keybase)"
+s3path="$s3bucket/$s3keybase"
+
+if [ "$(git diff HEAD --name-status)" = '' ]; then
+  git_status=clean
+else
+  git_status=dirty
+fi
+
+revision="$(git rev-parse HEAD)"
+
+sync_awslambda () {
+  name="$1"
+  rm -fr "work/$name.zip"
+  mkdir -p "work/$name"
+  rsync -r --delete --exclude=__pycache__ \
+    awslambda/.venv/lib/python3.6/site-packages/ \
+    "work/$name/"
+  touch "work/$name/__init__.py"
+  cp "awslambda/$name.py" "work/$name"
+  cd "work/$name"
+  digest="$(find . -type f -exec md5sum {} \; | sort -k 2 | md5sum | cut -f1 -d' ')"
+  cd ../..
+
+  s3_revision_path="s3://$s3path/$revision-$git_status"
+  s3_digest_path="$s3_revision_path/$name.digest"
+
+  temp_old_digest_path="$(mktemp)"
+  aws s3 cp --quiet "$s3_digest_path" "$temp_old_digest_path" || \
+    <<< '' > "$temp_old_digest_path"
+
+  if [ "$(< "$temp_old_digest_path")" != "$digest" ]; then
+    cd "work/$name"
+    zip -q -r "../awslambda/$name.zip" .
+    cd ../..
+    aws s3 cp "work/awslambda/$name.zip" "$s3_revision_path/$name.zip"
+    temp_new_digest_path="$(mktemp)"
+    echo "$digest" > "$temp_new_digest_path"
+    aws s3 cp "$temp_new_digest_path" "$s3_digest_path"
+  fi
+
+  aws s3api head-object \
+    --bucket "$s3bucket" \
+    --key "$s3keybase/$revision-$git_status/$name.zip" \
+    --query VersionId \
+    --output text \
+    > "work/awslambda/$name.versionid"
+
+  echo "$(tput setaf 2)$name.zip successfully synced.$(tput sgr0)"
+}
+
+
+rm -fr work/awslambda
+mkdir -p work/awslambda
+sync_awslambda csvimport
