@@ -5,6 +5,7 @@ from datetime import datetime
 from pprint import PrettyPrinter
 
 from troposphere import ImportValue, Join, Ref
+from troposphere.events import Rule, Target
 
 log = logging.getLogger(__name__)
 pp = PrettyPrinter(indent=3)
@@ -60,3 +61,11 @@ def lambda_log_name(function):
 def condition(template, name, cond):
   template.add_condition(name, cond)
   return name
+
+
+def patch_events():
+  # Patch for https://github.com/cloudtools/troposphere/issues/775
+  if 'RoleArn' in Target.props:
+    del Target.props['RoleArn']
+  if 'RoleArn' not in Rule.props:
+    Rule.props['RoleArn'] = (str, False)

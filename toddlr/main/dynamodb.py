@@ -13,25 +13,28 @@ def words_attrdefs():
       dynamodb.AttributeDefinition(AttributeName='reminder', AttributeType='S'),
       dynamodb.AttributeDefinition(AttributeName='user', AttributeType='S'),
       dynamodb.AttributeDefinition(
-          AttributeName='forgetful', AttributeType='S'),
+          AttributeName='user/forgetful', AttributeType='S'),
+      dynamodb.AttributeDefinition(
+          AttributeName='user/showed', AttributeType='S'),
   ]
 
 
 def words_gsis():
   return [
       dynamodb.GlobalSecondaryIndex(
-          IndexName='reminder',
+          IndexName='user_showed_reminder',
           KeySchema=[
-              dynamodb.KeySchema(AttributeName='user', KeyType='HASH'),
+              dynamodb.KeySchema(AttributeName='user/showed', KeyType='HASH'),
               dynamodb.KeySchema(AttributeName='reminder', KeyType='RANGE'),
           ],
           Projection=dynamodb.Projection(ProjectionType='ALL'),
           ProvisionedThroughput=dynamodb.ProvisionedThroughput(
               ReadCapacityUnits=1, WriteCapacityUnits=1)),
       dynamodb.GlobalSecondaryIndex(
-          IndexName='forgetful',
+          IndexName='user_forgetful_reminder',
           KeySchema=[
-              dynamodb.KeySchema(AttributeName='forgetful', KeyType='HASH'),
+              dynamodb.KeySchema(
+                  AttributeName='user/forgetful', KeyType='HASH'),
               dynamodb.KeySchema(AttributeName='reminder', KeyType='RANGE'),
           ],
           Projection=dynamodb.Projection(ProjectionType='ALL'),
@@ -45,6 +48,9 @@ def words_table():
       'WordsTable',
       AttributeDefinitions=words_attrdefs(),
       GlobalSecondaryIndexes=words_gsis(),
-      KeySchema=[dynamodb.KeySchema(AttributeName='word', KeyType='HASH')],
+      KeySchema=[
+          dynamodb.KeySchema(AttributeName='user', KeyType='HASH'),
+          dynamodb.KeySchema(AttributeName='word', KeyType='RANGE'),
+      ],
       ProvisionedThroughput=dynamodb.ProvisionedThroughput(
           ReadCapacityUnits=1, WriteCapacityUnits=1))

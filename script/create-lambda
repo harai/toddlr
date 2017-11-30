@@ -1,17 +1,23 @@
 #!/bin/bash -eu
 
 
-s3bucket="$(< config/s3bucket)"
-s3keybase="$(< config/s3keybase)"
-s3path="$s3bucket/$s3keybase"
+S3BUCKET="$(< config/s3bucket)"
+S3KEYBASE="$(< config/s3keybase)"
+S3PATH="$S3BUCKET/$S3KEYBASE"
 
 if [ "$(git diff HEAD --name-status)" = '' ]; then
-  git_status=clean
+  GIT_STATUS=clean
 else
-  git_status=dirty
+  GIT_STATUS=dirty
 fi
 
-revision="$(git rev-parse HEAD)"
+REVISION="$(git rev-parse HEAD)"
+
+export S3BUCKET
+export S3KEYBASE
+export S3PATH
+export GIT_STATUS
+export REVISION
 
 sync_awslambda () {
   name="$1"
@@ -20,13 +26,14 @@ sync_awslambda () {
   rsync -r --delete --exclude=__pycache__ \
     awslambda/.venv/lib/python3.6/site-packages/ \
     "work/$name/"
+  cp -R "awslambda/toddlr" "work/$name"
   touch "work/$name/__init__.py"
   cp "awslambda/$name.py" "work/$name"
   cd "work/$name"
   digest="$(find . -type f -exec md5sum {} \; | sort -k 2 | md5sum | cut -f1 -d' ')"
   cd ../..
 
-  s3_revision_path="s3://$s3path/$revision-$git_status"
+  s3_revision_path="s3://$S3PATH/$REVISION-$GIT_STATUS"
   s3_digest_path="$s3_revision_path/$name.digest"
 
   temp_old_digest_path="$(mktemp)"
@@ -44,8 +51,8 @@ sync_awslambda () {
   fi
 
   aws s3api head-object \
-    --bucket "$s3bucket" \
-    --key "$s3keybase/$revision-$git_status/$name.zip" \
+    --bucket "$S3BUCKET" \
+    --key "$S3KEYBASE/$REVISION-$GIT_STATUS/$name.zip" \
     --query VersionId \
     --output text \
     > "work/awslambda/$name.versionid"
@@ -56,4 +63,12 @@ sync_awslambda () {
 
 rm -fr work/awslambda
 mkdir -p work/awslambda
-sync_awslambda csvimport
+
+export -f sync_awslambda
+sem --no-notice -j 8 sync_awslambda csvimport
+sem --no-notice -j 8 sync_awslambda show
+sem --no-notice -j 8 sync_awslambda showeach
+sem --no-notice -j 8 sync_awslambda archive
+sem --no-notice -j 8 sync_awslambda archiveeach
+
+sem --no-notice --wait
