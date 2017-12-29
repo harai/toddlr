@@ -4,8 +4,6 @@ import uuid
 from urllib import parse
 from uuid import UUID
 
-from toddlr.exception import RetriableError, UnretriableError
-
 log = logging.getLogger(__name__)
 
 env = os.environ
