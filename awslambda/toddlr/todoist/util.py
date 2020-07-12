@@ -22,7 +22,7 @@ def to_dictionary_url(word):
 
 
 def from_dictionary_url(content):
-  url = content.split(' ', maxsplit=1)[0]
+  url = content.split('](')[-1].split(')')[0]
   if url.startswith(weblio_prefix):
     return parse.unquote_plus(url[len(weblio_prefix):])
   raise ValueError('Unknown URL format: "{}"'.format(url))

@@ -19,7 +19,7 @@ def csvimport_function(
       Environment=awslambda.Environment(Variables=lambda_environment_dict),
       Handler='csvimport.lambda_handler',
       Role=GetAtt(csvimport_lambda_role, 'Arn'),
-      Runtime='python3.6',
+      Runtime='python3.8',
       Timeout=60 * 5)
 
 
@@ -35,7 +35,7 @@ def showeach_function(
       Environment=awslambda.Environment(Variables=lambda_environment_dict),
       Handler='showeach.lambda_handler',
       Role=GetAtt(showeach_lambda_role, 'Arn'),
-      Runtime='python3.6',
+      Runtime='python3.8',
       Timeout=60 * 5)
 
 
@@ -56,7 +56,7 @@ def show_function(
       Environment=awslambda.Environment(Variables=env),
       Handler='show.lambda_handler',
       Role=GetAtt(show_lambda_role, 'Arn'),
-      Runtime='python3.6',
+      Runtime='python3.8',
       Timeout=60 * 5)
 
 
@@ -72,7 +72,7 @@ def archiveeach_function(
       Environment=awslambda.Environment(Variables=lambda_environment_dict),
       Handler='archiveeach.lambda_handler',
       Role=GetAtt(archiveeach_lambda_role, 'Arn'),
-      Runtime='python3.6',
+      Runtime='python3.8',
       Timeout=60 * 5)
 
 
@@ -93,7 +93,7 @@ def archive_function(
       Environment=awslambda.Environment(Variables=env),
       Handler='archive.lambda_handler',
       Role=GetAtt(archive_lambda_role, 'Arn'),
-      Runtime='python3.6',
+      Runtime='python3.8',
       Timeout=60 * 5)
 
 
