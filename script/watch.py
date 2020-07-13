@@ -5,7 +5,7 @@ import sys
 from pprint import PrettyPrinter
 
 import autopep8
-from isort import SortImports
+import isort
 from yapf.yapflib.yapf_api import FormatCode
 
 log = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ def beautify_with_autopep8_yapf_isort(path):
   except SyntaxError as e:
     print(e)
     return False
-  isorted_contents = SortImports(file_contents=yapfed_contents).output
+  isorted_contents = isort.code(yapfed_contents)
 
   if contents == isorted_contents:
     return False

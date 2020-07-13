@@ -24,7 +24,7 @@ sync_awslambda () {
   rm -fr "work/$name.zip"
   mkdir -p "work/$name"
   rsync -r --delete --exclude=__pycache__ \
-    awslambda/.venv/lib/python3.6/site-packages/ \
+    awslambda/.venv/lib/python3.8/site-packages/ \
     "work/$name/"
   cp -R "awslambda/toddlr" "work/$name"
   touch "work/$name/__init__.py"
