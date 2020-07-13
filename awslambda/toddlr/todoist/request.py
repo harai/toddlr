@@ -64,7 +64,7 @@ def show_word(user, word, forgetful, note, project_id, base_request_id, now):
 
   request(
       'post',
-      'https://beta.todoist.com/API/v8/tasks',
+      'https://api.todoist.com/rest/v1/tasks',
       params=params(),
       data={
           'content': mapping.word_to_todoist(word),
@@ -79,7 +79,7 @@ def show_word(user, word, forgetful, note, project_id, base_request_id, now):
 def clear_archived_word(task_id):
   request(
       'post',
-      'https://beta.todoist.com/API/v8/tasks/{}/close'.format(task_id),
+      'https://api.todoist.com/rest/v1/tasks/{}/close'.format(task_id),
       params=params())
 
 
@@ -98,7 +98,7 @@ def get_archived_words(project_id):
 
   res = request(
       'get',
-      'https://beta.todoist.com/API/v8/tasks',
+      'https://api.todoist.com/rest/v1/tasks',
       params=params(project_id=project_id))
 
   items = res.json()
