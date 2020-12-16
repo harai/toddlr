@@ -53,7 +53,8 @@ def beautify_with_autopep8_yapf_isort(path):
   except SyntaxError as e:
     print(e)
     return False
-  isorted_contents = isort.code(yapfed_contents)
+  isorted_contents = isort.code(
+      yapfed_contents, config=isort.Config(settings_path='.'))
 
   if contents == isorted_contents:
     return False
